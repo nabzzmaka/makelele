@@ -7,6 +7,8 @@ const navLinks = [
   { href: "/", label: "Dashboard" },
   { href: "/deficiencies", label: "Deficiencies" },
   { href: "/deficiencies/new", label: "+ New" },
+  { href: "/risikoscoring", label: "Risikoscoring" },
+  { href: "/risikoscoring/partners", label: "Partnere" },
 ];
 
 export default function Navbar() {
@@ -28,6 +30,10 @@ export default function Navbar() {
             const isActive =
               link.href === "/"
                 ? pathname === "/"
+                : link.href === "/risikoscoring"
+                ? pathname === "/risikoscoring"
+                : link.href === "/risikoscoring/partners"
+                ? pathname.startsWith("/risikoscoring/partners")
                 : pathname.startsWith(link.href) &&
                   !(link.href === "/deficiencies" && pathname === "/deficiencies/new");
 

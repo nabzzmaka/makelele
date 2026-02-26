@@ -44,6 +44,28 @@ function getDb(): Database.Database {
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       FOREIGN KEY (deficiency_id) REFERENCES deficiencies(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS partners (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      partner_id TEXT NOT NULL UNIQUE,
+      partner_name TEXT NOT NULL,
+      profit_center TEXT NOT NULL,
+      leader_level TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS risk_events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      partner_id INTEGER NOT NULL,
+      avvikshendelse TEXT NOT NULL,
+      avvikskategori TEXT NOT NULL,
+      poeng INTEGER NOT NULL DEFAULT 0,
+      begrunnelse TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      created_by TEXT NOT NULL DEFAULT '',
+      FOREIGN KEY (partner_id) REFERENCES partners(id) ON DELETE CASCADE
+    );
   `);
 
   return db;
