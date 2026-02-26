@@ -1,18 +1,27 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import type { DeficiencyWithRemediation } from "@/lib/types";
+import type { Deficiency, DeficiencyWithRemediation, RemediationAction } from "@/lib/types";
 import StatusBadge from "@/components/StatusBadge";
 import RemediationActions from "@/components/RemediationActions";
 import DeleteButton from "@/components/DeleteButton";
+import getDb from "@/lib/db";
 
 async function getDeficiency(
   id: string
 ): Promise<DeficiencyWithRemediation | null> {
-  const res = await fetch(`http://localhost:3000/api/deficiencies/${id}`, {
-    cache: "no-store",
-  });
-  if (!res.ok) return null;
-  return res.json();
+  try {
+    const db = getDb();
+    const deficiency = db
+      .prepare("SELECT * FROM deficiencies WHERE id = ?")
+      .get(id) as Deficiency | undefined;
+    if (!deficiency) return null;
+    const remediation_actions = db
+      .prepare("SELECT * FROM remediation_actions WHERE deficiency_id = ? ORDER BY created_at ASC")
+      .all(id) as RemediationAction[];
+    return { ...deficiency, remediation_actions };
+  } catch {
+    return null;
+  }
 }
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {

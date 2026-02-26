@@ -1,13 +1,15 @@
 import { notFound } from "next/navigation";
 import DeficiencyForm from "@/components/DeficiencyForm";
 import type { Deficiency } from "@/lib/types";
+import getDb from "@/lib/db";
 
 async function getDeficiency(id: string): Promise<Deficiency | null> {
-  const res = await fetch(`http://localhost:3000/api/deficiencies/${id}`, {
-    cache: "no-store",
-  });
-  if (!res.ok) return null;
-  return res.json();
+  try {
+    const db = getDb();
+    return db.prepare("SELECT * FROM deficiencies WHERE id = ?").get(id) as Deficiency | null;
+  } catch {
+    return null;
+  }
 }
 
 export default async function EditDeficiencyPage({

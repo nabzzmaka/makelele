@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Deficiency } from "@/lib/types";
 import { ISQM1_COMPONENTS, ISQM1_COMPONENT_CODES } from "@/lib/types";
 import StatusBadge from "@/components/StatusBadge";
+import getDb from "@/lib/db";
 
 interface SearchParams {
   status?: string;
@@ -10,17 +11,18 @@ interface SearchParams {
 }
 
 async function getDeficiencies(filters: SearchParams): Promise<Deficiency[]> {
-  const params = new URLSearchParams();
-  if (filters.status) params.set("status", filters.status);
-  if (filters.component) params.set("component", filters.component);
-  if (filters.severity) params.set("severity", filters.severity);
-
-  const res = await fetch(
-    `http://localhost:3000/api/deficiencies?${params.toString()}`,
-    { cache: "no-store" }
-  );
-  if (!res.ok) return [];
-  return res.json();
+  try {
+    const db = getDb();
+    let query = "SELECT * FROM deficiencies WHERE 1=1";
+    const params: string[] = [];
+    if (filters.status) { query += " AND status = ?"; params.push(filters.status); }
+    if (filters.component) { query += " AND component = ?"; params.push(filters.component); }
+    if (filters.severity) { query += " AND severity = ?"; params.push(filters.severity); }
+    query += " ORDER BY created_at DESC";
+    return db.prepare(query).all(...params) as Deficiency[];
+  } catch {
+    return [];
+  }
 }
 
 export default async function DeficienciesPage({

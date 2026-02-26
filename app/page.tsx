@@ -2,14 +2,19 @@ import Link from "next/link";
 import { ISQM1_COMPONENT_CODES } from "@/lib/types";
 import type { DashboardStats, Deficiency } from "@/lib/types";
 import StatusBadge from "@/components/StatusBadge";
+import getDb from "@/lib/db";
 
 async function getStats(): Promise<DashboardStats | null> {
   try {
-    const res = await fetch("http://localhost:3000/api/dashboard", {
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    return res.json();
+    const db = getDb();
+    const total = (db.prepare("SELECT COUNT(*) as count FROM deficiencies").get() as { count: number }).count;
+    const open = (db.prepare("SELECT COUNT(*) as count FROM deficiencies WHERE status = 'open'").get() as { count: number }).count;
+    const in_progress = (db.prepare("SELECT COUNT(*) as count FROM deficiencies WHERE status = 'in_progress'").get() as { count: number }).count;
+    const resolved = (db.prepare("SELECT COUNT(*) as count FROM deficiencies WHERE status = 'resolved'").get() as { count: number }).count;
+    const by_component = db.prepare("SELECT component, COUNT(*) as count FROM deficiencies GROUP BY component ORDER BY count DESC").all() as { component: string; count: number }[];
+    const by_severity = db.prepare("SELECT severity, COUNT(*) as count FROM deficiencies GROUP BY severity").all() as { severity: string; count: number }[];
+    const recent = db.prepare("SELECT * FROM deficiencies ORDER BY created_at DESC LIMIT 5").all() as Deficiency[];
+    return { total, open, in_progress, resolved, by_component, by_severity, recent };
   } catch {
     return null;
   }
