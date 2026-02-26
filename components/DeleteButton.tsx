@@ -3,27 +3,39 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function DeleteButton({ id }: { id: number }) {
+interface Props {
+  id: number;
+  endpoint?: string;
+  redirectTo?: string;
+  label?: string;
+}
+
+export default function DeleteButton({
+  id,
+  endpoint = "/api/deficiencies",
+  redirectTo = "/deficiencies",
+  label = "Delete",
+}: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   async function handleDelete() {
     if (
       !confirm(
-        "Are you sure you want to delete this deficiency and all its remediation actions? This cannot be undone."
+        "Are you sure you want to delete this? This cannot be undone."
       )
     )
       return;
 
     setLoading(true);
-    await fetch(`/api/deficiencies/${id}`, { method: "DELETE" });
-    router.push("/deficiencies");
+    await fetch(`${endpoint}/${id}`, { method: "DELETE" });
+    router.push(redirectTo);
     router.refresh();
   }
 
   return (
     <button className="btn-danger" onClick={handleDelete} disabled={loading}>
-      {loading ? "Deleting…" : "Delete"}
+      {loading ? "Deleting…" : label}
     </button>
   );
 }
